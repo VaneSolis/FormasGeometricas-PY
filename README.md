@@ -9,6 +9,8 @@ Una API REST completa para calcular áreas y volúmenes de formas geométricas c
 - **API REST**: Documentación automática con Swagger
 - **Arquitectura Limpia**: Separación clara de responsabilidades
 - **Validación**: Validación de datos con Pydantic
+- **Autenticación JWT**: Sistema de autenticación seguro
+- **CORS Configurado**: Soporte para aplicaciones frontend
 - **Escalable**: Diseñado para crecer fácilmente
 
 ## 📐 Formas Soportadas
@@ -56,7 +58,10 @@ SUPABASE_URL=tu_url_de_supabase
 SUPABASE_KEY=tu_clave_de_supabase
 DATABASE_URL=postgresql://usuario:contraseña@host:puerto/nombre_db
 DEBUG=True
-```
+
+# Configuración JWT
+SECRET_KEY=tu_clave_secreta_muy_segura_aqui_cambiala_en_produccion
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ### 5. Configurar Supabase
 
@@ -84,42 +89,50 @@ La API estará disponible en: http://localhost:8000
 
 ## 🔧 Endpoints Principales
 
-### Calcular y Guardar
+### 🔐 Autenticación
+```http
+POST /api/v1/auth/register    # Registrar nuevo usuario
+POST /api/v1/auth/login       # Iniciar sesión
+GET  /api/v1/auth/me          # Obtener información del usuario actual
+```
+
+### 📐 Geometría (Requiere autenticación)
 ```http
 POST /api/v1/geometry/calculate
-```
-
-Ejemplo para un cubo:
-```json
-{
-  "shape_type": "cube",
-  "dimensions": {
-    "side": 5.0
-  },
-  "calculation_type": "both"
-}
-```
-
-### Calcular sin Guardar
-```http
 POST /api/v1/geometry/calculate-only
+GET  /api/v1/geometry/calculations
+GET  /api/v1/geometry/calculations/{id}
+GET  /api/v1/geometry/calculations/shape/{shape_type}
+DELETE /api/v1/geometry/calculations/{id}
+GET  /api/v1/geometry/statistics
+GET  /api/v1/geometry/shapes
 ```
 
-### Obtener Cálculos
-```http
-GET /api/v1/geometry/calculations
-GET /api/v1/geometry/calculations/{id}
-GET /api/v1/geometry/calculations/shape/{shape_type}
-```
+### Ejemplo de uso con autenticación:
+```bash
+# 1. Registrar usuario
+curl -X POST "http://localhost:8000/api/v1/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "usuario@ejemplo.com",
+    "username": "usuario",
+    "password": "contraseña123"
+  }'
 
-### Estadísticas
-```http
-GET /api/v1/geometry/statistics
-```
+# 2. Iniciar sesión
+curl -X POST "http://localhost:8000/api/v1/auth/login" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=usuario&password=contraseña123"
 
-### Formas Soportadas
-```http
-GET /api/v1/geometry/shapes
+# 3. Usar el token para calcular
+curl -X POST "http://localhost:8000/api/v1/geometry/calculate" \
+  -H "Authorization: Bearer TU_TOKEN_AQUI" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "shape_type": "cube",
+    "dimensions": {"side": 5.0},
+    "calculation_type": "both"
+  }'
 ```
 
 ## 📁 Estructura del Proyecto
@@ -189,9 +202,12 @@ curl "http://localhost:8000/api/v1/geometry/calculations"
 
 ## 🔒 Seguridad
 
-- Validación de datos de entrada con Pydantic
-- Manejo de errores con códigos HTTP apropiados
-- Configuración de CORS para desarrollo
+- **Autenticación JWT**: Tokens seguros para autenticación
+- **Hash de contraseñas**: Contraseñas hasheadas con bcrypt
+- **Validación de datos**: Validación de entrada con Pydantic
+- **CORS configurado**: Soporte seguro para aplicaciones frontend
+- **Manejo de errores**: Códigos HTTP apropiados
+- **Dependencias seguras**: Todas las rutas protegidas requieren autenticación
 
 ## 🚀 Despliegue
 

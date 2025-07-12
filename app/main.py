@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import geometry_routes
+from app.routers import geometry_routes, auth
 from app.db.database import engine
-from app.models import geometric_shape
+from app.models import geometric_shape, user
 
 # Crear las tablas en la base de datos
 geometric_shape.Base.metadata.create_all(bind=engine)
+user.Base.metadata.create_all(bind=engine)
 
 # Crear la aplicación FastAPI
 app = FastAPI(
@@ -45,13 +46,14 @@ app = FastAPI(
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, especificar dominios específicos
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
 # Incluir las rutas
+app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(geometry_routes.router, prefix=settings.API_V1_STR)
 
 @app.get("/", tags=["Información"])

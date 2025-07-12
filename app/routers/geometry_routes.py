@@ -6,6 +6,8 @@ from app.controllers.geometry_controller import GeometryController
 from app.models.schemas import (
     GeometricCalculationRequest, GeometricCalculationResponse, CalculationResult
 )
+from app.core.deps import get_current_active_user
+from app.models.user import User
 
 router = APIRouter(prefix="/geometry", tags=["Geometría"])
 
@@ -14,7 +16,8 @@ router = APIRouter(prefix="/geometry", tags=["Geometría"])
              description="Calcula el área y/o volumen de una forma geométrica y lo guarda en la base de datos")
 async def calculate_and_save_geometry(
     request: GeometricCalculationRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """Calcular y guardar un cálculo geométrico"""
     try:
@@ -31,7 +34,8 @@ async def calculate_and_save_geometry(
              description="Calcula el área y/o volumen de una forma geométrica sin guardarlo en la base de datos")
 async def calculate_only_geometry(
     request: GeometricCalculationRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """Calcular sin guardar en la base de datos"""
     try:
@@ -49,7 +53,8 @@ async def calculate_only_geometry(
 async def get_all_calculations(
     skip: int = Query(0, ge=0, description="Número de registros a saltar"),
     limit: int = Query(100, ge=1, le=1000, description="Número máximo de registros a retornar"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """Obtener todos los cálculos con paginación"""
     controller = GeometryController(db)
@@ -60,7 +65,8 @@ async def get_all_calculations(
             description="Obtiene un cálculo específico por su ID")
 async def get_calculation_by_id(
     calculation_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """Obtener un cálculo por ID"""
     controller = GeometryController(db)
@@ -76,7 +82,8 @@ async def get_calculations_by_shape_type(
     shape_type: str,
     skip: int = Query(0, ge=0, description="Número de registros a saltar"),
     limit: int = Query(100, ge=1, le=1000, description="Número máximo de registros a retornar"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """Obtener cálculos por tipo de forma"""
     controller = GeometryController(db)
@@ -87,7 +94,8 @@ async def get_calculations_by_shape_type(
                description="Elimina un cálculo específico por su ID")
 async def delete_calculation(
     calculation_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """Eliminar un cálculo por ID"""
     controller = GeometryController(db)
@@ -99,7 +107,10 @@ async def delete_calculation(
 @router.get("/statistics",
             summary="Obtener estadísticas",
             description="Obtiene estadísticas de los cálculos guardados")
-async def get_statistics(db: Session = Depends(get_db)):
+async def get_statistics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     """Obtener estadísticas de los cálculos"""
     controller = GeometryController(db)
     return controller.get_statistics()

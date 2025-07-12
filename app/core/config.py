@@ -17,5 +17,18 @@ class Settings:
     
     # Configuración de la aplicación
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
+    
+    # Configuración JWT
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "tu_clave_secreta_muy_segura_aqui")
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    
+    # Configuración CORS
+    CORS_ORIGINS: list = [
+        "http://localhost:3000",
+        "http://localhost:8080", 
+        "http://localhost:8000",
+        "https://tu-dominio.com"
+    ]
 
 settings = Settings()
